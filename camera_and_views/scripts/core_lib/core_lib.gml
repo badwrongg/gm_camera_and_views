@@ -39,13 +39,3 @@ function range_wrap(_value, _increment, _max)
 {
 	return (_max + _value + _increment) mod _max;
 }
-
-function mouse_x_gui()
-{
-	return window_mouse_get_x() / window_get_width() * display_get_gui_width();
-}
-
-function mouse_y_gui()
-{
-	return window_mouse_get_y() / window_get_height() * display_get_gui_height();
-}
