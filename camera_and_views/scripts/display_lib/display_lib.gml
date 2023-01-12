@@ -1,5 +1,11 @@
+/// feather ignore all
+
 #macro DISPLAY_DEFAULT_FULLSCREEN true
 #macro DISPLAY_DEFAULT_TEXTURE_FILTERING true
+#macro DISPLAY_DEFAULT_WINDOWED_WIDTH 800
+#macro DISPLAY_DEFAULT_WINDOWED_HEIGHT 600
+
+// These functions are mostly just used by the display_manager object
 
 function get_display_scales()
 {
@@ -57,9 +63,11 @@ function draw_app_surface_aa_point_sampling()
 
 	shader_set(shd_aa_point_sampling_glsl_es);
 	gpu_set_tex_filter(true);
+	gpu_set_blendenable(false);
 	shader_set_uniform_f(_u_texel_size, _tex_w, _tex_h);
 	shader_set_uniform_f(_u_pixel_scale, _window_width/_surf_w, _window_height/_surf_h);
 	draw_surface_stretched(application_surface, 0, 0, _window_width, _window_height);
 	shader_reset();
 	gpu_set_tex_filter(_tex_filter);
+	gpu_set_blendenable(true);
 }

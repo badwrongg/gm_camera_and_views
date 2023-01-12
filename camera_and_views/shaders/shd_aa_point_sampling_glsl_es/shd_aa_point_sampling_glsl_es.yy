@@ -5,6 +5,6 @@
   "type": 1,
   "parent": {
     "name": "Shaders",
-    "path": "folders/_System/Shaders.yy",
+    "path": "folders/GUI and Display/_core/Shaders.yy",
   },
 }

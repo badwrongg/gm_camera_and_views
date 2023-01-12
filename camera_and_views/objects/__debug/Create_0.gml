@@ -18,6 +18,7 @@ Esc: Exit
 F1: Toggle Debug
 F: Toggle Fullscreen
 G: Toggle Point-sampling
+T: Toggle Viewports
 Num +/-: Scale GUI
 Mouse Wheel: Zoom
 WASD: Move Player

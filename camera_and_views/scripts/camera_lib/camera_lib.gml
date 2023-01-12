@@ -1,3 +1,5 @@
+/// feather ignore all
+
 #macro VIEW_ZOOM_MIN   0.1
 #macro VIEW_ZOOM_MAX   4
 #macro VIEW_ZOOM_SPEED 0.1
@@ -6,224 +8,294 @@
 #macro VIEW_DEFAULT_FOLLOW_OBJECT entity_player
 
 function game_camera_create(
-	_view_index, 
-	_cam_width, 
-	_cam_height, 
-	_view_xpos, 
-	_view_ypos, 
-	_view_xscale, 
-	_view_yscale, 
+	_viewport_index, 
+	_view_width, 
+	_view_height, 
+	_viewport_xpos, 
+	_viewport_ypos, 
+	_viewport_xscale, 
+	_viewport_yscale, 
 	_follow_object) constructor
 {
-	// Viewport
-	view_index  = _view_index;
-	view_xpos   = _view_xpos;
-	view_ypos   = _view_ypos;
-	view_xscale = _view_xscale;
-	view_yscale = _view_yscale;
+	
+	#region Declarations
+	
+		// Viewport
+		viewport_index   = _viewport_index;
+		viewport_xpos    = _viewport_xpos;
+		viewport_ypos    = _viewport_ypos;
+		viewport_xscale  = _viewport_xscale;
+		viewport_yscale  = _viewport_yscale;
+		viewport_visible = true;
 
-	// Camera
-	id = camera_create();
-	x  = 0;
-	y  = 0;
-	cam_width   = _cam_width;
-	cam_height  = _cam_height;
-	width       = 0;
-	height      = 0;
-	zoom        = 1;
-	zoom_to     = 1;
-	zoom_min    = VIEW_ZOOM_MIN;
-	zoom_max    = VIEW_ZOOM_MAX;
-	zoom_speed  = VIEW_ZOOM_SPEED;
+		// Camera
+		id			= camera_create();
+		x			= 0;			// x coordinate in the room of the camera view
+		y			= 0;			// y coordinate in the room of the camera view
+		width       = 0;			// width of the camera view
+		height      = 0;			// height of the camera view
+		view_width  = _view_width;  // desired view width before aspect ratio correction
+		view_height = _view_height; // desired view height before aspect ratio correction
+		zoom        = 1;
+		zoom_to     = 1;
+		zoom_min    = VIEW_ZOOM_MIN;
+		zoom_max    = VIEW_ZOOM_MAX;
+		zoom_speed  = VIEW_ZOOM_SPEED;
 
-	// Follow
-	follow		  = noone;
-	follow_object = _follow_object;
-	follow_x	  = 0;
-	follow_y	  = 0;
-	follow_speed  = 0.04;
+		// Follow
+		follow		  = noone;			// id of the followed instance
+		follow_object = _follow_object; // object_index or id of the instance to follow
+		follow_x	  = 0;
+		follow_y	  = 0;
+		follow_speed  = 0.04;
 	
-	static update = function()
-	{
-		// Call this every step that the camera should update
-		
-		update_follow();
-		zoom = lerp(zoom, zoom_to, 0.1);
-		update_camera();
-	}
+	#endregion
 	
-	static update_camera = function()
-	{
-		var _width  = width  * zoom,
-			_height = height * zoom;
-				
-		x = clamp(follow_x - _width  * 0.5, 0, room_width  - _width);
-		y = clamp(follow_y - _height * 0.5, 0, room_height - _height);	
+	#region Public
 	
-		camera_set_view_size(id, _width, _height);
-		camera_set_view_pos(id, x, y);
-	}
+		// These functions are for use with any camera setup using this struct
 	
-	static update_follow = function()
-	{
-		if (instance_exists(follow))
+		static set_follow = function(_object)
 		{
-			follow_x += (follow.x - follow_x) * follow_speed;
-			follow_y += (follow.y - follow_y) * follow_speed;
-			return;
+			// Sets the follow object, or use the actual instance id if needed
+		
+			follow_object = _object; 
+			follow = instance_nearest(x, y, _object);
+		
+			if (instance_exists(follow))
+			{
+				follow_x = follow.x;
+				follow_y = follow.y;
+			}
 		}
 	
-		follow = instance_nearest(x, y, follow_object);
-	}
-	
-	static set_follow = function(_object)
-	{
-		follow_object = _object; // Could be instance id as well
-		follow = instance_nearest(x, y, _object);
+		static set_position = function(_x, _y)
+		{
+			// Immediately sets the camera position.
+			// If following an instance the camera will still go back to it
 		
-		if (instance_exists(follow))
-		{
-			follow_x = follow.x;
-			follow_y = follow.y;
+			x = _x;
+			y = _y;
+			update_camera();
 		}
-	}
-	
-	static room_start = function(_window_width, _window_height)
-	{		
-		update_viewport(_window_width, _window_height);
-		zoom_to = clamp(1, zoom_min, zoom_max);
-		zoom    = zoom_to;
-		
-		follow = instance_nearest(x, y, follow_object);
-		if instance_exists(follow)
+
+		static set_view_size = function(_view_width, _view_height)
 		{
-			follow_x = follow.x;
-			follow_y = follow.y;
-		}
-		else
-		{
-			// If nothing to follow use the room center
-			follow_x = room_width  * 0.5;
-			follow_y = room_height * 0.5;		
+			view_width  = _view_width;
+			view_height = _view_height;
+			update_aspect_and_zoom();
 		}
 		
-		update_camera();
-	}
+		static set_viewport = function(_viewport_xpos, _viewport_ypos, _viewport_xscale, _viewport_yscale)
+		{
+			// Sets all the viewport properties
 			
-	static set_position = function(_x, _y)
-	{
-		x = _x;
-		y = _y;
-		update_camera();
-	}
-
-	static increment_zoom = function(_increment)
-	{
-		zoom_to = clamp(zoom_to + _increment * zoom_speed, zoom_min, zoom_max);
-	}
-
-	static set_zoom = function(_zoom)
-	{	
-		zoom_to = clamp(_zoom, zoom_min, zoom_max);
-	}
-	
-	static set_angle = function (_angle)
-	{
-		camera_set_view_angle(id, _angle);	
-	}
-	
-	static increment_angle = function(_increment)
-	{
-		set_angle(camera_get_view_angle(id) + _increment);
-	}
-	
-	static update_viewport = function(_window_width, _window_height)
-	{
-		// Sets the properties of the viewport that this camera belongs to
-		// Call when resizing the game window or changing viewport settings
+			var _back_buffer_scale = get_back_buffer_scale();
 		
-		var _cam = view_get_camera(view_index);
-		if (_cam != id)
-			camera_destroy(_cam);
-	
-		view_set_visible(view_index, true);
-		view_set_camera(view_index, id);
-		
-		var _vwidth  = _window_width * view_xscale,
-			_vheight = _window_height * view_yscale;
-	
-		view_set_wport(view_index, _vwidth);
-		view_set_hport(view_index, _vheight);
-		view_set_xport(view_index, min(_window_width * view_xpos, _window_width - _vwidth * 0.5));
-		view_set_yport(view_index, min(_window_height * view_ypos, _window_height - _vheight * 0.5));
-		update_aspect_and_zoom();
-	}
-	
-	static update_aspect_and_zoom = function()
-	{
-		// Scales the camera view aspect with the viewport is belongs to
-		// Then sets the maximum zoom value to keep the view in the game room
-		
-		var _aspect_view = view_get_hport(view_index)/view_get_wport(view_index),
-			_aspect_cam  = cam_height/cam_height;
-		
-		if (_aspect_view > _aspect_cam)
-		{
-			var _excess = cam_height * (_aspect_view/_aspect_cam - 1);  
-			height = cam_height + _excess;
-			width = cam_width;
-		}
-		else
-		{
-			var _excess = cam_width * (_aspect_cam/_aspect_view - 1);  
-			width = cam_width + _excess;
-			height = cam_height;
+			viewport_xpos   = _viewport_xpos;
+			viewport_ypos   = _viewport_ypos;
+			viewport_xscale = _viewport_xscale;
+			viewport_yscale = _viewport_yscale;
+			update_viewport(window_get_width() * _back_buffer_scale, window_get_height() * _back_buffer_scale);
 		}
 	
-		zoom_max = min(min(room_width/width, room_height/height), VIEW_ZOOM_MAX);
-	}
+		static increment_zoom = function(_increment)
+		{
+			zoom_to = clamp(zoom_to + _increment * zoom_speed, zoom_min, zoom_max);
+		}
+
+		static set_zoom = function(_zoom)
+		{	
+			zoom_to = clamp(_zoom, zoom_min, zoom_max);
+		}
 	
-	static set_camera_size = function(_width, _height)
-	{
-		cam_width  = _width;
-		cam_height = _height;
-		update_aspect_and_zoom();
-	}
+		static set_angle = function (_angle)
+		{
+			camera_set_view_angle(id, _angle);	
+		}
 	
-	static set_viewport = function(_xpos, _ypos, _xscale, _yscale)
-	{
-		var _back_buffer_scale = get_back_buffer_scale();
+		static increment_angle = function(_increment)
+		{
+			set_angle(camera_get_view_angle(id) + _increment);
+		}
+	
+		static set_visible = function(_visible)
+		{
+			viewport_visible = _visible;
 		
-		view_xpos   = _xpos;
-		view_ypos   = _ypos;
-		view_xscale = _xscale;
-		view_yscale = _yscale;
-		update_viewport(window_get_width() * _back_buffer_scale, window_get_height() * _back_buffer_scale);
+			var _back_buffer_scale = get_back_buffer_scale();
+			update_viewport(window_get_width() * _back_buffer_scale, window_get_height() * _back_buffer_scale);
+		}
+	
+		static get_visible = function()
+		{
+			return viewport_visible;	
+		}
+	
+	#endregion
+	
+	#region Manual camera control
+		
+		// Only needed if not using the display_manager object
+		
+		static update = function()
+		{
+			// Called every step when updating the camera
+		
+			update_follow();
+			zoom = lerp(zoom, zoom_to, 0.1);
+			update_camera();
+		}
+	
+		static room_start = function(_window_width, _window_height)
+		{		
+			// Call on room start or if the event already ran call on create of camera
+		
+			update_viewport(_window_width, _window_height);
+			zoom_to = clamp(1, zoom_min, zoom_max);
+			zoom    = zoom_to;
+		
+			follow = instance_nearest(x, y, follow_object);
+			if instance_exists(follow)
+			{
+				follow_x = follow.x;
+				follow_y = follow.y;
+			}
+			else
+			{
+				// If nothing to follow use the room center
+				follow_x = room_width  * 0.5;
+				follow_y = room_height * 0.5;		
+			}
+		
+			update_camera();
+		}
+		
+		static update_viewport = function(_window_width, _window_height)
+		{
+			// Call when resizing the game window or changing viewport settings
+		
+			var _cam = view_get_camera(viewport_index);
+			if (_cam != id)
+				camera_destroy(_cam);
+	
+			view_set_visible(viewport_index, viewport_visible);
+			view_set_camera(viewport_index, id);
+			view_set_wport(viewport_index, _window_width  * viewport_xscale);
+			view_set_hport(viewport_index, _window_height * viewport_yscale);
+			view_set_xport(viewport_index, _window_width  * viewport_xpos);
+			view_set_yport(viewport_index, _window_height * viewport_ypos);
+			update_aspect_and_zoom();
+		}
+		
+	#endregion
+	
+	#region Private
+	
+		// Functions that you never would need to call directly
+	
+		static update_camera = function()
+		{
+			// Sets the final view size and position
+			
+			var _width  = width  * zoom,
+				_height = height * zoom;
+				
+			x = clamp(follow_x - _width  * 0.5, 0, room_width  - _width);
+			y = clamp(follow_y - _height * 0.5, 0, room_height - _height);	
+	
+			camera_set_view_size(id, _width, _height);
+			camera_set_view_pos(id, x, y);
+		}
+	
+		static update_follow = function()
+		{
+			// ** This could be edited to follow the object in different ways
+			
+			if (instance_exists(follow))
+			{
+				follow_x += (follow.x - follow_x) * follow_speed;
+				follow_y += (follow.y - follow_y) * follow_speed;
+				return;
+			}
+	
+			follow = instance_nearest(x, y, follow_object);
+		}
+	
+		static update_aspect_and_zoom = function()
+		{
+			// Scales the camera view aspect with the viewport is belongs to
+			// Then sets the maximum zoom value to keep the view in the game room
+		
+			var _aspect_view = view_get_hport(viewport_index)/view_get_wport(viewport_index),
+				_aspect_cam  = view_height/view_height;
+		
+			if (_aspect_view > _aspect_cam)
+			{
+				var _excess = view_height * (_aspect_view/_aspect_cam - 1);  
+				height = view_height + _excess;
+				width = view_width;
+			}
+			else
+			{
+				var _excess = view_width * (_aspect_cam/_aspect_view - 1);  
+				width = view_width + _excess;
+				height = view_height;
+			}
+	
+			zoom_max = min(min(room_width/width, room_height/height), VIEW_ZOOM_MAX);
+		}
+	
+	#endregion
+
+}
+
+#region Game Camera Array
+
+	function get_game_camera_array()
+	{
+		// Static array of game_cameras
+	
+		static _game_cameras = array_create(0);
+	
+		return _game_cameras;
 	}
-	
-}
 
-function get_game_camera_array()
-{
-	static _game_cameras = array_create(0);
+	function add_game_camera(
+		_viewport_index, 
+		_view_width, 
+		_view_height, 
+		_viewport_xpos, 
+		_viewport_ypos, 
+		_viewport_xscale, 
+		_viewport_yscale, 
+		_follow_object)
+	{
+		// Adds a game_camera to the static game_camera array
+		
+		var _cam = new game_camera_create(
+			_viewport_index, 
+			_view_width, 
+			_view_height, 
+			_viewport_xpos, 
+			_viewport_ypos, 
+			_viewport_xscale, 
+			_viewport_yscale, 
+			_follow_object);
+		array_push(get_game_camera_array(), _cam); 
 	
-	return _game_cameras;
-}
+		return _cam;
+	}
 
-function add_game_camera(_view_index, _cam_width, _cam_height, _view_xpos, _view_ypos, _view_xscale, _view_yscale, _follow_object)
-{
-	var _cam = new game_camera_create(_view_index, _cam_width, _cam_height, _view_xpos, _view_ypos, _view_xscale, _view_yscale, _follow_object);
-	array_push(get_game_camera_array(), _cam); 
+	function get_game_camera(_index)
+	{
+		// Get a game_camera by index
 	
-	return _cam;
-}
-
-function get_game_camera(_index)
-{
-	var _cams = get_game_camera_array();
+		var _cams = get_game_camera_array();
 	
-	if (_index < array_length(_cams))
-		return _cams[_index];
-	return noone;
-}
+		if (_index < array_length(_cams))
+			return _cams[_index];
+		return noone;
+	}
 
+#endregion

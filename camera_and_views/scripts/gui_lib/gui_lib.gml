@@ -1,13 +1,17 @@
+/// feather ignore all
+
 #macro GUI_DEFAULT_WIDTH  sprite_get_width(spr_gui_guide)
 #macro GUI_DEFAULT_HEIGHT sprite_get_height(spr_gui_guide)
 
 function gui_mouse_x()
 {
+	// Useful for using collision functions with GUI objects
 	return window_mouse_get_x() / window_get_width() * display_get_gui_width();
 }
 
 function gui_mouse_y()
 {
+	// Useful for using collision functions with GUI objects
 	return window_mouse_get_y() / window_get_height() * display_get_gui_height();
 }
 
