@@ -228,7 +228,7 @@ function game_camera_create(
 			// Then sets the maximum zoom value to keep the view in the game room
 		
 			var _aspect_view = view_get_hport(viewport_index)/view_get_wport(viewport_index),
-				_aspect_cam  = view_height/view_height;
+				_aspect_cam  = view_height/view_width;
 		
 			if (_aspect_view > _aspect_cam)
 			{
