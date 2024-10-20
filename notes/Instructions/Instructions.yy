@@ -1,0 +1,11 @@
+{
+  "$GMNotes":"",
+  "%Name":"Instructions",
+  "name":"Instructions",
+  "parent":{
+    "name":"gm_camera_and_views",
+    "path":"gm_camera_and_views.yyp",
+  },
+  "resourceType":"GMNotes",
+  "resourceVersion":"2.0",
+}

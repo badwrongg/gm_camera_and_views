@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"init_lib",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"init_lib",
+  "parent":{
+    "name":"_core",
+    "path":"folders/Example/_System/_core.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

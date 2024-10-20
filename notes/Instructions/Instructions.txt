@@ -1,0 +1,48 @@
+- Tutorials -
+Display Manager: https://youtu.be/keIgmttNuNs
+Camera Shake:    https://youtu.be/zNNjYVirQgQ
+
+Basic Setup:
+ - Import the folder "GUI and Display" into your project
+ - Place the display_manager object in the first room of your game or some initializataion room
+ - Setup cameras in "User Event 1" of the display_manager (examples commented out in that event)
+ - For some camera control examples look at the object "Example\Game\gamestate" for its step event
+ - The "Example" folder does not need to be imported to your project, but it is a good starting template
+   since it sets up game initialization and loader scripts which can be added to
+ 
+GUI Setup:
+ - Inherit your GUI objects from the abstract parent object __gui
+ - Ensure that event_inherited() is in the create event of your child GUI objects
+ - The default GUI size is from the sprite "spr_gui_guide" which you can see on an
+   asset layer in the room "Example\Levels\rm_example"
+ - The GUI will be sized by the display_manager and GUI objects anchor positions will be used
+ - Open the variables tab of a GUI object when placing it to set the x and y anchors
+
+Camera Shake:
+ - Structs made with game_camera_create() automatically have a camera shake component added to it and will manage everything;
+   the camera will have a variable cam_shake which is the camera shake component
+ - The functions to create actual camera shake are found in "GUI and Display\Libraries\camera_shake_lib"
+ 
+ - Create a new camera shake struct with one of those like this:
+		
+		var _shake = new cam_shake_perlin(10, 10, 2, 0.5, 0.5, 0.1, 400, 0.2, 0.2);
+   
+   Then you need to add it to the camera itself that was created with game_camera_create() with the add function:
+        
+		my_camera.cam_shake.add(_shake);
+		
+   If you are using the static array of game cameras that the display_manager uses then simply use the get function:
+		
+		get_game_camera(0).cam_shake.add(_shake);
+		
+   In this case it gets the camera at index 0 which was created in "User Event 1" of the display_manager
+   
+ - Note, if you create camera shake with 0 duration it will shake forever and should be stopped manually.
+   You can call the stop function on the cam_shake component for this:
+		
+		get_game_camera(0).cam_shake.stop();
+	
+ - If you use camera shake with cam_shake_sequence() and the sequence loops, you need to destroy it yourself
+ - The GUI widgets in the example room call functions from "GUI and Display\Libraries\widgets_lib", and you can
+   refer to them on how the other shake functions are called.  The widgets are configured within the room
+   when placed and variables are set on the variables tab.
