@@ -95,7 +95,7 @@ function draw_perlin_noise_buffer(_x, _y)
 	}	
 }
 
-function shader_set_perlin_noise(_seed_value = 0)
+function shader_set_perlin_noise(_seed_value = 0, _frequency_min = 0.11111, _frequency_max = 0.99999)
 {
 	// Draws anything with a perlin noise texture
 	// Will repeat if the UVs are the full 0 - 1 on the quad
@@ -107,7 +107,7 @@ function shader_set_perlin_noise(_seed_value = 0)
 	static _seed    = random_range(25.11111, 29.99999);
 
 	if (_seed_value != 0)
-		_seed = _seed_value + random_range(0.11111, 0.99999);
+		_seed = _seed_value + random_range(_frequency_min, _frequency_max);
 
 	shader_set(shd_perlin_noise_glsl_es);
 	shader_set_uniform_f(_u_seed, _seed);
