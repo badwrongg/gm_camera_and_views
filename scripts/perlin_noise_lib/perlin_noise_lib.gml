@@ -170,7 +170,7 @@ function shader_set_perlin_noise(_seed_value = 0, _frequency_min = 0.11111, _fre
 			_values  = ds_list_create(),
 			_table   = array_create(256),
 			_index   = 0,
-			_num	 = 0,
+			_num	 = 0;
 		
 		// Populate values 
 		while (_index < 256)
